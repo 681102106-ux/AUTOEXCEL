@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp 
+          xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" 
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+          xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" 
+          xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+          xsi:type="TaskPaneApp">
+
+  <Id>d3536868-2432-4d2c-9a4f-66289fbdb371</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>CPRU AI Dev</ProviderName>
+  <DefaultLocale>th-TH</DefaultLocale>
+  <DisplayName DefaultValue="AI สกัดใบกำกับภาษี" />
+  <Description DefaultValue="ดึงข้อมูลจาก PDF/รูปภาพ ลงตาราง Excel อัตโนมัติ" />
+  <IconUrl DefaultValue="https://raw.githubusercontent.com/OfficeDev/office-js-snippets/prod/assets/icon-32.png" />
+
+  <SupportUrl DefaultValue="http://localhost:8080/static/taskpane.html" />
+  <AppDomains>
+    <AppDomain>http://localhost:8080</AppDomain>
+  </AppDomains>
+
+  <Hosts>
+    <Host Name="Workbook" />
+  </Hosts>
+
+  <DefaultSettings>
+    <SourceLocation DefaultValue="http://localhost:8080/static/taskpane.html" />
+  </DefaultSettings>
+
+  <Permissions>ReadWriteDocument</Permissions>
+
+  <!-- 🌟 ส่วนที่เพิ่มเข้ามาใหม่: สั่งสร้างปุ่มบนแท็บ "หน้าแรก" (Home) -->
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Workbook">
+        <DesktopFormFactor>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <!-- สร้างกลุ่มเครื่องมือใหม่ชื่อ AI Tools -->
+              <Group id="CustomGroup">
+                <Label resid="GroupLabel" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon16" />
+                  <bt:Image size="32" resid="Icon32" />
+                  <bt:Image size="80" resid="Icon80" />
+                </Icon>
+                <Control xsi:type="Button" id="TaskpaneButton">
+                  <Label resid="ButtonLabel" />
+                  <Supertip>
+                    <Title resid="ButtonToolTipTitle" />
+                    <Description resid="ButtonToolTipDescription" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon16" />
+                    <bt:Image size="32" resid="Icon32" />
+                    <bt:Image size="80" resid="Icon80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>ButtonId1</TaskpaneId>
+                    <SourceLocation resid="TaskpaneUrl" />
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon16" DefaultValue="https://raw.githubusercontent.com/OfficeDev/office-js-snippets/prod/assets/icon-16.png" />
+        <bt:Image id="Icon32" DefaultValue="https://raw.githubusercontent.com/OfficeDev/office-js-snippets/prod/assets/icon-32.png" />
+        <bt:Image id="Icon80" DefaultValue="https://raw.githubusercontent.com/OfficeDev/office-js-snippets/prod/assets/icon-80.png" />
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="TaskpaneUrl" DefaultValue="http://localhost:8080/static/taskpane.html" />
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="GroupLabel" DefaultValue="AI Tools" />
+        <bt:String id="ButtonLabel" DefaultValue="ดึงข้อมูลบิล" />
+        <bt:String id="ButtonToolTipTitle" DefaultValue="AI ดึงข้อมูลบิลอัตโนมัติ" />
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="ButtonToolTipDescription" DefaultValue="เปิดหน้าต่าง AI สกัดใบกำกับภาษี" />
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

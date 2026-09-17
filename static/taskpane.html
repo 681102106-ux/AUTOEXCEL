@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>AI Invoice Extractor</title>
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <link rel="stylesheet" href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-core/11.0.0/css/fabric.min.css" />
+    <style>
+        body { padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #faf9f8; color: #323130; }
+        .header { text-align: center; margin-bottom: 20px; }
+        h2 { color: #107c41; font-size: 20px; font-weight: 600; margin-bottom: 2px; }
+        p.subtitle { font-size: 12px; color: #605e5c; margin-top: 0; }
+        
+        .upload-card { background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); margin-bottom: 20px; text-align: center; border: 1px solid #edebe9; }
+        input[type="file"] { display: block; margin: 0 auto 15px auto; font-size: 13px; color: #323130; width: 100%; border: 1px dashed #c8c6c4; padding: 10px; border-radius: 4px; box-sizing: border-box; background: #f3f2f1; }
+        
+        button.ms-Button--primary { background-color: #107c41; color: white; border: none; padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 4px; width: 100%; transition: background 0.2s; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+        button.ms-Button--primary:hover { background-color: #0b5a2f; }
+        button:disabled { background-color: #c8c6c4 !important; cursor: not-allowed; box-shadow: none; color: #a19f9d; }
+
+        .progress-container { width: 100%; background-color: #edebe9; border-radius: 2px; height: 4px; overflow: hidden; margin-top: 15px; display: none; }
+        .progress-bar { width: 30%; height: 100%; background-color: #107c41; animation: indeterminate 1.5s infinite linear; transform-origin: 0% 50%; }
+        @keyframes indeterminate { 0% { transform: translateX(-100%) scaleX(0.2); } 50% { transform: translateX(0%) scaleX(0.5); } 100% { transform: translateX(100%) scaleX(1); } }
+
+        .message-bar { display: none; padding: 10px 15px; margin-bottom: 15px; border-radius: 4px; font-size: 13px; font-weight: 500; display: flex; align-items: center; justify-content: space-between; animation: slideDown 0.3s ease-out; }
+        .message-bar.success { background-color: #dff6dd; color: #107c41; border: 1px solid #107c41; }
+        .message-bar.error { background-color: #fde7e9; color: #a4262c; border: 1px solid #a4262c; }
+        .message-bar.warning { background-color: #fff4ce; color: #8a8886; border: 1px solid #8a8886; }
+        .close-msg { cursor: pointer; font-weight: bold; padding-left: 10px; opacity: 0.7; }
+        .close-msg:hover { opacity: 1; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .vcode-input { background-color: #f3f2f1; color: #a19f9d; font-weight: bold; text-align: center; border: 1px solid #edebe9; border-radius: 2px; }
+        .matched-badge { font-size: 10px; color: white; background: #107c41; padding: 2px 6px; border-radius: 10px; margin-left: 5px; font-weight: normal; }
+        
+        .review-card { background: white; border-radius: 6px; box-shadow: 0 1.6px 3.6px 0 rgba(0, 0, 0, .132); padding: 15px; margin-bottom: 15px; }
+        .review-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #edebe9; padding-bottom: 8px; margin-bottom: 10px; }
+        input[type="text"], input[type="number"] { padding: 6px 8px; border: 1px solid #605e5c; border-radius: 2px; font-family: 'Segoe UI'; font-size: 13px; }
+        input[type="text"]:focus, input[type="number"]:focus { outline: none; border-color: #107c41; }
+
+        /* 🌟 สไตล์ใหม่สำหรับปุ่ม Export สีม่วงดูพรีเมียม */
+        button#exportExpressBtn { background-color: #5c2d91; color: white; margin-top: 15px; display: block; }
+        button#exportExpressBtn:hover { background-color: #3b1d5c; }
+    </style>
+</head>
+<body class="ms-font-m">
+    
+    <div id="toastContainer"></div>
+
+    <div class="header">
+        <h2>ระบบสกัดใบกำกับภาษี AI</h2>
+        <p class="subtitle">รองรับไฟล์ PDF (หลายหน้า) และรูปภาพ</p>
+    </div>
+
+    <datalist id="vendorList"></datalist>
+
+    <div class="upload-card" id="uploadSection">
+        <input type="file" id="fileInput" accept="image/png, image/jpeg, application/pdf" multiple />
+        <button id="run" class="ms-Button--primary">
+            <span class="ms-Button-label">สกัดข้อมูลอัตโนมัติ</span>
+        </button>
+        <div id="loadingProgress" class="progress-container">
+            <div class="progress-bar"></div>
+        </div>
+        <div id="loadingText" style="display: none; font-size: 11px; color: #605e5c; margin-top: 5px;">กำลังเชื่อมต่อสมองกล AI...</div>
+        
+        <!-- 🌟 ปุ่มสำหรับดึงข้อมูลที่อยู่ใน Excel อยู่แล้ว ออกมาเป็นไฟล์ (โชว์ตลอดเวลา) -->
+        <hr style="border: 0; border-top: 1px solid #edebe9; margin: 20px 0 5px 0;">
+        <p style="font-size: 11px; color: #605e5c; margin-bottom: 5px;">ดึงข้อมูลบิลในตารางปัจจุบันไปใช้งาน</p>
+        <button id="exportExpressBtn" class="ms-Button--primary">
+            <span class="ms-Button-label">⬇️ ส่งออกไฟล์สำหรับ Express</span>
+        </button>
+    </div>
+
+    <div id="reviewContainer" style="display: none; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #edebe9; padding-bottom: 5px; margin-bottom: 15px;">
+            <h3 style="color: #107c41; font-size: 16px; margin: 0;">ตรวจสอบความถูกต้อง</h3>
+            <span id="docCount" style="font-size: 12px; color: #605e5c; font-weight: 600;"></span>
+        </div>
+        
+        <div id="cardsArea"></div>
+        
+        <button id="approveBtn" class="ms-Button--primary" style="background-color: #0078d4; margin-top: 15px;">
+            <span class="ms-Button-label">บันทึกข้อมูลลงตาราง</span>
+        </button>
+        <button id="retryBtn" class="ms-Button--primary" style="background-color: #f3f2f1; color: #323130; border: 1px solid #c8c6c4; margin-top: 10px;">
+            <span class="ms-Button-label">อ่านเอกสารใหม่อีกครั้ง</span>
+        </button>
+        <button id="cancelBtn" class="ms-Button--primary" style="background-color: #fff; color: #a4262c; border: 1px solid #a4262c; margin-top: 10px;">
+            <span class="ms-Button-label">ยกเลิกทั้งหมด</span>
+        </button>
+    </div>
+
+    <div id="imageViewerSection" style="margin-top: 20px; border-top: 2px dashed #edebe9; padding-top: 15px;">
+        <h3 style="color: #605e5c; font-size: 13px; margin-bottom: 5px; text-transform: uppercase;">📸 ภาพบิลต้นฉบับ</h3>
+        <div style="border: 1px solid #edebe9; border-radius: 4px; padding: 5px; background: #fff; text-align: center; min-height: 150px; display: flex; align-items: center; justify-content: center;">
+            <img id="billPreviewImg" src="" style="max-width: 100%; height: auto; display: none; cursor: zoom-in;" onclick="window.open(this.src, '_blank')" />
+            <div id="noImageText" style="font-size: 12px; color: #a19f9d;">คลิกที่ข้อมูลในการ์ดเพื่อแสดงรูปภาพ</div>
+        </div>
+    </div>
+
+    <script src="taskpane.js"></script>
+</body>
+</html>
